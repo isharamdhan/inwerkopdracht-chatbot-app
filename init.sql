@@ -1,0 +1,4 @@
+-- Do not create tables here. The schema lives in migrations/ (source of truth).
+-- This file runs only once, on the first start of an empty database. Use a
+-- versioned migration for the schema instead, so changes stay tracked and
+-- repeatable. See migrations/README.md.
