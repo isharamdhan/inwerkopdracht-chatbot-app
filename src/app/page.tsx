@@ -6,6 +6,7 @@ export default function HomePage() {
   const health = api.health.ping.useQuery();
   const sessions = api.sessions.list.useQuery();
   const createSessionMutation = api.sessions.create.useMutation();
+  const messages = api.messages.listBySession.useQuery({ sessionId: "04e946d0-ad3e-11f1-b272-0ef83a306c18" });
 
   function handleCreateSession() {
   createSessionMutation.mutate({
@@ -94,6 +95,17 @@ export default function HomePage() {
         {sessions.isError && <p>Error: {sessions.error.message}</p>}
 
         {sessions.data && <p>Sessions found: {sessions.data.length}</p>}
+      </div>
+
+      {/* Messages test frontend */}
+      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-3 font-semibold">Messages test</h2>
+
+        {messages.isLoading && <p>Loading messages...</p>}
+
+        {messages.isError && <p>Error: {messages.error.message}</p>}
+
+        {messages.data && <p>Messages found: {messages.data.length}</p>}
       </div>
 
       <p className="max-w-md text-center text-xs text-neutral-600">
