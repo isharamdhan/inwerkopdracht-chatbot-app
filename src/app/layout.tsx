@@ -4,7 +4,7 @@ import { type Metadata } from "next";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
-  title: "ChatBot App",
+  title: "ChatBot App ",
   description: "Onboarding assignment: Next.js + tRPC + MySQL + OpenAI",
 };
 
