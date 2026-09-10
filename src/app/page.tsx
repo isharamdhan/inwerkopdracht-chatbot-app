@@ -5,11 +5,18 @@ import { api } from "~/trpc/react";
 export default function HomePage() {
   const health = api.health.ping.useQuery();
   const sessions = api.sessions.list.useQuery();
+  const createSessionMutation = api.sessions.create.useMutation();
+
+  function handleCreateSession() {
+  createSessionMutation.mutate({
+    title: "Frontend test session",
+  });
+}
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-8 p-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">ChatBot App Isha!</h1>
+        <h1 className="text-3xl font-bold">ChatBot App Isha!!</h1>
         <p className="mt-2 text-neutral-400">
           Minimal starter:Next.js + tRPC + MySQL + OpenAI.
         </p>
@@ -56,15 +63,37 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* Create session test */}
+      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-3 font-semibold">Create session test</h2>
+
+        <button
+          type="button"
+          onClick={handleCreateSession}
+          disabled={createSessionMutation.isPending}
+          className="rounded bg-blue-600 px-4 py-2 text-white"
+        >
+          Create test session
+        </button>
+
+        {createSessionMutation.isPending && <p>Creating session...</p>}
+
+        {createSessionMutation.isSuccess && <p>Session created!</p>}
+
+        {createSessionMutation.isError && (
+          <p>Error: {createSessionMutation.error.message}</p>
+        )}
+      </div>
+
       {/* Sessions test frontend */}
       <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-      <h2>Sessions test</h2>
+        <h2>Sessions test</h2>
 
-      {sessions.isLoading && <p>Loading sessions...</p>}
+        {sessions.isLoading && <p>Loading sessions...</p>}
 
-      {sessions.isError && <p>Error: {sessions.error.message}</p>}
+        {sessions.isError && <p>Error: {sessions.error.message}</p>}
 
-      {sessions.data && <p>Sessions found: {sessions.data.length}</p>}
+        {sessions.data && <p>Sessions found: {sessions.data.length}</p>}
       </div>
 
       <p className="max-w-md text-center text-xs text-neutral-600">
