@@ -7,17 +7,30 @@ export default function HomePage() {
   const sessions = api.sessions.list.useQuery();
   const createSessionMutation = api.sessions.create.useMutation();
   const messages = api.messages.listBySession.useQuery({ sessionId: "04e946d0-ad3e-11f1-b272-0ef83a306c18" });
+  const systemPrompt = api.systemPrompts.get.useQuery();
+  const updateSystemPromptMutation = api.systemPrompts.update.useMutation();
 
   function handleCreateSession() {
   createSessionMutation.mutate({
     title: "Frontend test session",
   });
-}
+  }
+
+  function handleUpdateSystemPrompt() {
+    if (!systemPrompt.data) {
+      return;
+    }
+
+    updateSystemPromptMutation.mutate({
+      id: systemPrompt.data.id,
+      content: "You are a helpful AI assistant. Give clear answers!",
+    });
+  }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-8 p-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">ChatBot App Isha!!</h1>
+        <h1 className="text-3xl font-bold">ChatBot App Isha!</h1>
         <p className="mt-2 text-neutral-400">
           Minimal starter:Next.js + tRPC + MySQL + OpenAI.
         </p>
@@ -106,6 +119,39 @@ export default function HomePage() {
         {messages.isError && <p>Error: {messages.error.message}</p>}
 
         {messages.data && <p>Messages found: {messages.data.length}</p>}
+      </div>
+
+      {/* System prompt test frontend */}
+      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-3 font-semibold">System prompt test</h2>
+
+        {systemPrompt.isLoading && <p>Loading system prompt...</p>}
+
+        {systemPrompt.isError && <p>Error: {systemPrompt.error.message}</p>}
+
+        {systemPrompt.data === null && <p>No system prompt found.</p>}
+
+        {systemPrompt.data && <p>{systemPrompt.data.content}</p>}
+        {systemPrompt.data && (
+          <button
+            type="button"
+            onClick={handleUpdateSystemPrompt}
+            disabled={updateSystemPromptMutation.isPending}
+            className="mt-4 rounded bg-blue-600 px-4 py-2 text-white"
+          >
+            Update system prompt
+          </button>
+        )}
+
+        {updateSystemPromptMutation.isPending && <p>Updating...</p>}
+
+        {updateSystemPromptMutation.isSuccess && (
+          <p>System prompt updated!</p>
+        )}
+
+        {updateSystemPromptMutation.isError && (
+          <p>Error: {updateSystemPromptMutation.error.message}</p>
+        )}
       </div>
 
       <p className="max-w-md text-center text-xs text-neutral-600">
