@@ -6,7 +6,11 @@ import { useRef, useState, type MouseEvent } from "react";
 export default function HomePage() {
   const health = api.health.ping.useQuery();
   const sessions = api.sessions.list.useQuery();
-  const createSessionMutation = api.sessions.create.useMutation();
+  const createSessionMutation = api.sessions.create.useMutation({
+    onSuccess: function () {
+    sessions.refetch();
+  },
+  });
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const messages = api.messages.listBySession.useQuery(
     { sessionId: selectedSessionId,},
@@ -17,7 +21,7 @@ export default function HomePage() {
 
   function handleCreateSession() {
     createSessionMutation.mutate({
-      title: "Frontend test session",
+      title: "New chat session.",
     });
   }
 
@@ -57,6 +61,15 @@ export default function HomePage() {
       {/* Sessions sidebar */}
       <aside className="h-fit rounded-xl border border-neutral-800 bg-neutral-900 p-4">
         <h2 className="mb-4 font-semibold">Chats</h2>
+        {/* Create new chat session */}
+        <button
+          type="button"
+          onClick={handleCreateSession}
+          disabled={createSessionMutation.isPending}
+          className="mb-4 w-full rounded bg-blue-600 px-4 py-2 text-white"
+        >
+          {createSessionMutation.isPending ? "Creating..." : "New chat"}
+        </button>
 
         {sessions.isLoading && <p>Loading chats...</p>}
 
@@ -121,28 +134,6 @@ export default function HomePage() {
               </span>
             </p>
           </div>
-        )}
-      </div>
-
-      {/* Create session test */}
-      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="mb-3 font-semibold">Create session test</h2>
-
-        <button
-          type="button"
-          onClick={handleCreateSession}
-          disabled={createSessionMutation.isPending}
-          className="rounded bg-blue-600 px-4 py-2 text-white"
-        >
-          Create test session
-        </button>
-
-        {createSessionMutation.isPending && <p>Creating session...</p>}
-
-        {createSessionMutation.isSuccess && <p>Session created!</p>}
-
-        {createSessionMutation.isError && (
-          <p>Error: {createSessionMutation.error.message}</p>
         )}
       </div>
 
