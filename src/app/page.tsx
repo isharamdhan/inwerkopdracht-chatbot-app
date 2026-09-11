@@ -18,6 +18,7 @@ export default function HomePage() {
   const systemPrompt = api.systemPrompts.get.useQuery();
   const updateSystemPromptMutation = api.systemPrompts.update.useMutation();
   const systemPromptInput = useRef<HTMLTextAreaElement>(null);
+  const messageInput = useRef<HTMLInputElement>(null);
 
   function handleCreateSession() {
     createSessionMutation.mutate({
@@ -180,6 +181,26 @@ export default function HomePage() {
             })}
           </div>
         )}
+
+      {/* Message input */}
+      {selectedSessionId !== "" && (
+        <div className="mt-auto flex gap-2 pt-6">
+          <input
+            ref={messageInput}
+            type="text"
+            placeholder="Type your message..."
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-4 py-3 text-white"
+          />
+
+          <button
+            type="button"
+            disabled
+            className="rounded bg-neutral-700 px-5 py-3 text-neutral-400"
+          >
+            Send
+          </button>
+        </div>
+)}
 
       </div>
 
