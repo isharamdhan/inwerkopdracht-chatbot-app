@@ -1,13 +1,16 @@
 "use client";
 
 import { api } from "~/trpc/react";
-import { useRef } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 
 export default function HomePage() {
   const health = api.health.ping.useQuery();
   const sessions = api.sessions.list.useQuery();
   const createSessionMutation = api.sessions.create.useMutation();
-  const messages = api.messages.listBySession.useQuery({ sessionId: "04e946d0-ad3e-11f1-b272-0ef83a306c18" });
+  const [selectedSessionId, setSelectedSessionId] = useState("");
+  const messages = api.messages.listBySession.useQuery(
+    { sessionId: selectedSessionId,},
+    { enabled: selectedSessionId !== "",}, );  
   const systemPrompt = api.systemPrompts.get.useQuery();
   const updateSystemPromptMutation = api.systemPrompts.update.useMutation();
   const systemPromptInput = useRef<HTMLTextAreaElement>(null);
@@ -17,6 +20,12 @@ export default function HomePage() {
       title: "Frontend test session",
     });
   }
+
+  function handleSelectSession(event: MouseEvent<HTMLButtonElement>) {
+  const sessionId = event.currentTarget.value;
+
+  setSelectedSessionId(sessionId);
+}
 
   function handleUpdateSystemPrompt() {
     if (!systemPrompt.data) {
@@ -43,8 +52,36 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className="grid w-full gap-8 md:grid-cols-[1fr_320px]">
-        <section className="flex flex-col gap-8">
+      <div className="grid w-full gap-8 lg:grid-cols-[240px_minmax(0,1fr)_280px]">
+
+      {/* Sessions sidebar */}
+      <aside className="h-fit rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+        <h2 className="mb-4 font-semibold">Chats</h2>
+
+        {sessions.isLoading && <p>Loading chats...</p>}
+
+        {sessions.isError && <p>Error: {sessions.error.message}</p>}
+
+        {sessions.data && (
+          <div className="flex flex-col gap-2">
+            {sessions.data.map(function (session) {
+              return (
+                <button
+                  key={session.id}
+                  type="button"
+                  className="rounded p-3 text-left hover:bg-neutral-800"
+                  value={session.id}
+                  onClick={handleSelectSession}
+                >
+                  {session.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </aside>
+
+      <section className="flex flex-col gap-8">
 
       <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-neutral-500 uppercase">
