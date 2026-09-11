@@ -1,22 +1,36 @@
 "use client";
 
 import { api } from "~/trpc/react";
-import { useRef } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 
 export default function HomePage() {
   const health = api.health.ping.useQuery();
   const sessions = api.sessions.list.useQuery();
-  const createSessionMutation = api.sessions.create.useMutation();
-  const messages = api.messages.listBySession.useQuery({ sessionId: "04e946d0-ad3e-11f1-b272-0ef83a306c18" });
+  const createSessionMutation = api.sessions.create.useMutation({
+    onSuccess: function () {
+    sessions.refetch();
+  },
+  });
+  const [selectedSessionId, setSelectedSessionId] = useState("");
+  const messages = api.messages.listBySession.useQuery(
+    { sessionId: selectedSessionId,},
+    { enabled: selectedSessionId !== "",}, );  
   const systemPrompt = api.systemPrompts.get.useQuery();
   const updateSystemPromptMutation = api.systemPrompts.update.useMutation();
   const systemPromptInput = useRef<HTMLTextAreaElement>(null);
+  const messageInput = useRef<HTMLInputElement>(null);
 
   function handleCreateSession() {
     createSessionMutation.mutate({
-      title: "Frontend test session",
+      title: "New chat session.",
     });
   }
+
+  function handleSelectSession(event: MouseEvent<HTMLButtonElement>) {
+  const sessionId = event.currentTarget.value;
+
+  setSelectedSessionId(sessionId);
+}
 
   function handleUpdateSystemPrompt() {
     if (!systemPrompt.data) {
@@ -43,8 +57,45 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className="grid w-full gap-8 md:grid-cols-[1fr_320px]">
-        <section className="flex flex-col gap-8">
+      <div className="grid w-full gap-8 lg:grid-cols-[240px_minmax(0,1fr)_280px]">
+
+      {/* Sessions sidebar */}
+      <aside className="h-fit rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+        <h2 className="mb-4 font-semibold">Chats</h2>
+        {/* Create new chat session */}
+        <button
+          type="button"
+          onClick={handleCreateSession}
+          disabled={createSessionMutation.isPending}
+          className="mb-4 w-full rounded bg-blue-600 px-4 py-2 text-white"
+        >
+          {createSessionMutation.isPending ? "Creating..." : "New chat"}
+        </button>
+
+        {sessions.isLoading && <p>Loading chats...</p>}
+
+        {sessions.isError && <p>Error: {sessions.error.message}</p>}
+
+        {sessions.data && (
+          <div className="flex flex-col gap-2">
+            {sessions.data.map(function (session) {
+              return (
+                <button
+                  key={session.id}
+                  type="button"
+                  className="rounded p-3 text-left hover:bg-neutral-800"
+                  value={session.id}
+                  onClick={handleSelectSession}
+                >
+                  {session.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </aside>
+
+      <section className="flex flex-col gap-8">
 
       <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-neutral-500 uppercase">
@@ -87,48 +138,70 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Create session test */}
-      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="mb-3 font-semibold">Create session test</h2>
-
-        <button
-          type="button"
-          onClick={handleCreateSession}
-          disabled={createSessionMutation.isPending}
-          className="rounded bg-blue-600 px-4 py-2 text-white"
-        >
-          Create test session
-        </button>
-
-        {createSessionMutation.isPending && <p>Creating session...</p>}
-
-        {createSessionMutation.isSuccess && <p>Session created!</p>}
-
-        {createSessionMutation.isError && (
-          <p>Error: {createSessionMutation.error.message}</p>
-        )}
-      </div>
-
-      {/* Sessions test frontend */}
-      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-        <h2>Sessions test</h2>
-
-        {sessions.isLoading && <p>Loading sessions...</p>}
-
-        {sessions.isError && <p>Error: {sessions.error.message}</p>}
-
-        {sessions.data && <p>Sessions found: {sessions.data.length}</p>}
-      </div>
-
       {/* Messages test frontend */}
-      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="mb-3 font-semibold">Messages test</h2>
+      {/* Chat messages */}
+      <div className="flex min-h-96 w-full flex-col rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-6 text-xl font-semibold">Hallo Isha!</h2>
+
+        {selectedSessionId === "" && (
+          <p className="text-neutral-400">
+            Select a chat to view the messages.
+          </p>
+        )}
 
         {messages.isLoading && <p>Loading messages...</p>}
 
         {messages.isError && <p>Error: {messages.error.message}</p>}
 
-        {messages.data && <p>Messages found: {messages.data.length}</p>}
+        {messages.data && messages.data.length === 0 && (
+          <p className="text-neutral-400">
+            This chat does not have any messages yet.
+          </p>
+        )}
+
+        {messages.data && (
+          <div className="flex flex-col gap-3">
+            {messages.data.map(function (message) {
+              return (
+                <div
+                  key={message.id}
+                  className={
+                    message.role === "user"
+                      ? "ml-auto max-w-3/4 rounded-xl bg-blue-600 p-3"
+                      : "mr-auto max-w-3/4 rounded-xl bg-neutral-800 p-3"
+                  }
+                >
+                  <p className="mb-1 text-xs font-semibold">
+                    {message.role === "user" ? "You" : "ChatBot Isha"}
+                  </p>
+
+                  <p>{message.content}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      {/* Message input */}
+      {selectedSessionId !== "" && (
+        <div className="mt-auto flex gap-2 pt-6">
+          <input
+            ref={messageInput}
+            type="text"
+            placeholder="Type your message..."
+            className="w-full rounded border border-neutral-700 bg-neutral-950 px-4 py-3 text-white"
+          />
+
+          <button
+            type="button"
+            disabled
+            className="rounded bg-neutral-700 px-5 py-3 text-neutral-400"
+          >
+            Send
+          </button>
+        </div>
+)}
+
       </div>
 
       </section>
