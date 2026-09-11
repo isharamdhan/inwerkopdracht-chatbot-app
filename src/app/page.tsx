@@ -146,26 +146,50 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Sessions test frontend */}
-      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-        <h2>Sessions test</h2>
-
-        {sessions.isLoading && <p>Loading sessions...</p>}
-
-        {sessions.isError && <p>Error: {sessions.error.message}</p>}
-
-        {sessions.data && <p>Sessions found: {sessions.data.length}</p>}
-      </div>
-
       {/* Messages test frontend */}
-      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
-        <h2 className="mb-3 font-semibold">Messages test</h2>
+      {/* Chat messages */}
+      <div className="flex min-h-96 w-full flex-col rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-6 text-xl font-semibold">Hallo Isha!</h2>
+
+        {selectedSessionId === "" && (
+          <p className="text-neutral-400">
+            Select a chat to view the messages.
+          </p>
+        )}
 
         {messages.isLoading && <p>Loading messages...</p>}
 
         {messages.isError && <p>Error: {messages.error.message}</p>}
 
-        {messages.data && <p>Messages found: {messages.data.length}</p>}
+        {messages.data && messages.data.length === 0 && (
+          <p className="text-neutral-400">
+            This chat does not have any messages yet.
+          </p>
+        )}
+
+        {messages.data && (
+          <div className="flex flex-col gap-3">
+            {messages.data.map(function (message) {
+              return (
+                <div
+                  key={message.id}
+                  className={
+                    message.role === "user"
+                      ? "ml-auto max-w-3/4 rounded-xl bg-blue-600 p-3"
+                      : "mr-auto max-w-3/4 rounded-xl bg-neutral-800 p-3"
+                  }
+                >
+                  <p className="mb-1 text-xs font-semibold">
+                    {message.role === "user" ? "You" : "ChatBot Isha"}
+                  </p>
+
+                  <p>{message.content}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
       </div>
 
       </section>
