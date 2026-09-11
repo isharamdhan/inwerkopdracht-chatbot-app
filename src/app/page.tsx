@@ -1,18 +1,50 @@
 "use client";
 
 import { api } from "~/trpc/react";
+import { useRef } from "react";
 
 export default function HomePage() {
   const health = api.health.ping.useQuery();
+  const sessions = api.sessions.list.useQuery();
+  const createSessionMutation = api.sessions.create.useMutation();
+  const messages = api.messages.listBySession.useQuery({ sessionId: "04e946d0-ad3e-11f1-b272-0ef83a306c18" });
+  const systemPrompt = api.systemPrompts.get.useQuery();
+  const updateSystemPromptMutation = api.systemPrompts.update.useMutation();
+  const systemPromptInput = useRef<HTMLTextAreaElement>(null);
+
+  function handleCreateSession() {
+    createSessionMutation.mutate({
+      title: "Frontend test session",
+    });
+  }
+
+  function handleUpdateSystemPrompt() {
+    if (!systemPrompt.data) {
+      return;
+    }
+    if (!systemPromptInput.current) {
+      return;
+    }
+
+    const content = systemPromptInput.current.value;
+
+    updateSystemPromptMutation.mutate({
+      id: systemPrompt.data.id,
+      content: content,
+    });
+}
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-8 p-8">
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-8 p-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">ChatBot App</h1>
+        <h1 className="text-3xl font-bold">ChatBot App Isha!!</h1>
         <p className="mt-2 text-neutral-400">
           Minimal starter:Next.js + tRPC + MySQL + OpenAI.
         </p>
       </div>
+
+      <div className="grid w-full gap-8 md:grid-cols-[1fr_320px]">
+        <section className="flex flex-col gap-8">
 
       <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-neutral-500 uppercase">
@@ -53,6 +85,99 @@ export default function HomePage() {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Create session test */}
+      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-3 font-semibold">Create session test</h2>
+
+        <button
+          type="button"
+          onClick={handleCreateSession}
+          disabled={createSessionMutation.isPending}
+          className="rounded bg-blue-600 px-4 py-2 text-white"
+        >
+          Create test session
+        </button>
+
+        {createSessionMutation.isPending && <p>Creating session...</p>}
+
+        {createSessionMutation.isSuccess && <p>Session created!</p>}
+
+        {createSessionMutation.isError && (
+          <p>Error: {createSessionMutation.error.message}</p>
+        )}
+      </div>
+
+      {/* Sessions test frontend */}
+      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2>Sessions test</h2>
+
+        {sessions.isLoading && <p>Loading sessions...</p>}
+
+        {sessions.isError && <p>Error: {sessions.error.message}</p>}
+
+        {sessions.data && <p>Sessions found: {sessions.data.length}</p>}
+      </div>
+
+      {/* Messages test frontend */}
+      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-3 font-semibold">Messages test</h2>
+
+        {messages.isLoading && <p>Loading messages...</p>}
+
+        {messages.isError && <p>Error: {messages.error.message}</p>}
+
+        {messages.data && <p>Messages found: {messages.data.length}</p>}
+      </div>
+
+      </section>
+
+      <aside>
+
+      {/* System prompt test frontend */}
+      <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        <h2 className="mb-3 font-semibold">System prompt test</h2>
+
+        {systemPrompt.isLoading && <p>Loading system prompt...</p>}
+
+        {systemPrompt.isError && <p>Error: {systemPrompt.error.message}</p>}
+
+        {systemPrompt.data === null && <p>No system prompt found.</p>}
+
+        {systemPrompt.data && <p>{systemPrompt.data.content}</p>}
+        {systemPrompt.data && (
+          <div onSubmit={handleUpdateSystemPrompt}>
+            <textarea
+              ref={systemPromptInput}
+              defaultValue={systemPrompt.data.content}
+              required
+              className="min-h-40 w-full rounded border border-neutral-700 bg-neutral-950 p-3 text-sm text-neutral-100"
+            />
+
+            <button
+              type="button"
+              onClick={handleUpdateSystemPrompt}
+              disabled={updateSystemPromptMutation.isPending}
+              className="mt-4 rounded bg-blue-600 px-4 py-2 text-white"
+            >
+              Save system prompt
+            </button>
+          </div>
+        )}
+
+        {updateSystemPromptMutation.isPending && <p>Updating...</p>}
+
+        {updateSystemPromptMutation.isSuccess && (
+          <p>System prompt updated!</p>
+        )}
+
+        {updateSystemPromptMutation.isError && (
+          <p>Error: {updateSystemPromptMutation.error.message}</p>
+        )}
+      </div>
+
+      </aside>
       </div>
 
       <p className="max-w-md text-center text-xs text-neutral-600">

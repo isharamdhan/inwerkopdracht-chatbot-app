@@ -11,6 +11,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   };
 };
 
+// initialize tRPC + error handling
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
@@ -26,5 +27,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 });
 
 export const createCallerFactory = t.createCallerFactory;
+
+// Used to create routers + procedures
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
