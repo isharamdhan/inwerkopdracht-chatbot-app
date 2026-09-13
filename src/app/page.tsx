@@ -7,9 +7,11 @@ export default function HomePage() {
   // const health = api.health.ping.useQuery();
   const sessions = api.sessions.list.useQuery();
   const createSessionMutation = api.sessions.create.useMutation({
-    onSuccess: async function () {
-    await sessions.refetch();
-  },
+    onSuccess: async function (newSession) {
+      await sessions.refetch();
+
+      setSelectedSessionId(newSession.id);
+    },
   });
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const messages = api.messages.listBySession.useQuery(
