@@ -11,6 +11,26 @@ const getMessagesInput = z.object({
   sessionId: z.string().uuid(),
 });
 
+// Get the active system prompt from the database.
+async function getSystemPromptContent() {
+  const sql = `
+    SELECT id, content, updated_at
+    FROM system_prompts
+    ORDER BY updated_at DESC
+    LIMIT 1
+  `;
+
+  const result = await db.query<SystemPromptRow[]>(sql);
+  const prompts = result[0];
+  const prompt = prompts[0];
+
+  if (!prompt) {
+    throw new Error("No system prompt found.");
+  }
+
+  return prompt.content;
+}
+
 // Save a user message in the database.
 async function saveUserMessage(sessionId: string, content: string) {
   const messageId = randomUUID();
@@ -24,6 +44,28 @@ async function saveUserMessage(sessionId: string, content: string) {
     messageId,
     sessionId,
     "user",
+    content,
+  ]);
+
+  return messageId;
+}
+
+// Save an assistant message in the database.
+async function saveAssistantMessage(
+  sessionId: string,
+  content: string,
+) {
+  const messageId = randomUUID();
+
+  const sql = `
+    INSERT INTO messages (id, session_id, role, content)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  await db.query(sql, [
+    messageId,
+    sessionId,
+    "assistant",
     content,
   ]);
 
@@ -51,14 +93,37 @@ async function getMessages(sessionId: string) {
   return messages;
 }
 
-// Test the sendMessage procedure.
 async function sendMessage(sessionId: string, content: string) {
-  const messageId = await saveUserMessage(sessionId, content);
+  const systemPrompt = await getSystemPromptContent();
+
+  const response = await openai.responses.create({
+    model: "gpt-5.4-nano",
+    instructions: systemPrompt,
+    input: content,
+  });
+
+  const answer = response.output_text.trim();
+
+  if (answer === "") {
+    throw new Error("OpenAI returned an empty answer.");
+  }
+
+  const userMessageId = await saveUserMessage(
+    sessionId,
+    content,
+  );
+
+  const assistantMessageId = await saveAssistantMessage(
+    sessionId,
+    answer,
+  );
 
   return {
-    id: messageId,
+    id: userMessageId,
     sessionId: sessionId,
     content: content,
+    answerId: assistantMessageId,
+    answer: answer,
   };
 }
 

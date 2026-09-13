@@ -78,7 +78,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-8 p-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">ChatBot App Isha!!</h1>
+        <h1 className="text-3xl font-bold">ChatBot App Isha!</h1>
         <p className="mt-2 text-neutral-400">
           Minimal starter:Next.js + tRPC + MySQL + OpenAI.
         </p>
