@@ -93,13 +93,44 @@ async function getMessages(sessionId: string) {
   return messages;
 }
 
+// Get the last four messages from one session.
+async function getRecentMessages(sessionId: string) {
+  const sql = `
+    SELECT id, session_id, role, content, created_at
+    FROM messages
+    WHERE session_id = ?
+    ORDER BY created_at DESC
+    LIMIT 4
+  `;
+
+  const result = await db.query<MessageRow[]>(sql, [sessionId]);
+  const recentMessages = result[0];
+
+  recentMessages.reverse();
+
+  return recentMessages;
+}
+
 async function sendMessage(sessionId: string, content: string) {
   const systemPrompt = await getSystemPromptContent();
+  const recentMessages = await getRecentMessages(sessionId);
+
+  const conversation = recentMessages.map(function (message) {
+    return {
+      role: message.role,
+      content: message.content,
+    };
+  });
+
+  conversation.push({
+    role: "user",
+    content: content,
+  });
 
   const response = await openai.responses.create({
     model: "gpt-5.4-nano",
     instructions: systemPrompt,
-    input: content,
+    input: conversation,
   });
 
   const answer = response.output_text.trim();
