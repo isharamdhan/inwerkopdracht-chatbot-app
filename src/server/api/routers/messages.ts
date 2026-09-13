@@ -84,7 +84,7 @@ async function getMessages(sessionId: string) {
     SELECT id, session_id, role, content, created_at
     FROM messages
     WHERE session_id = ?
-    ORDER BY created_at ASC
+    ORDER BY created_at ASC, role ASC
   `;
 
   const result = await db.query<MessageRow[]>(sql, [sessionId]);
