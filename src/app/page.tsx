@@ -19,7 +19,12 @@ export default function HomePage() {
   const updateSystemPromptMutation = api.systemPrompts.update.useMutation();
   const systemPromptInput = useRef<HTMLTextAreaElement>(null);
   const messageInput = useRef<HTMLInputElement>(null);
-  const sendMessageMutation = api.messages.sendMessage.useMutation();
+
+  const sendMessageMutation = api.messages.sendMessage.useMutation({
+  onSuccess: async function () {
+    await messages.refetch();
+  },
+  });
 
   function handleCreateSession() {
     createSessionMutation.mutate({

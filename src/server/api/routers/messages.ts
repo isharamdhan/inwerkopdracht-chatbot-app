@@ -2,11 +2,33 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import type { MessageRow } from "~/server/types/message";
 import { db } from "~/server/db";
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
+import { openai } from "~/server/openai";
+import type { SystemPromptRow } from "~/server/types/system-prompt";
 
 // Validate the session id.
 const getMessagesInput = z.object({
   sessionId: z.string().uuid(),
 });
+
+// Save a user message in the database.
+async function saveUserMessage(sessionId: string, content: string) {
+  const messageId = randomUUID();
+
+  const sql = `
+    INSERT INTO messages (id, session_id, role, content)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  await db.query(sql, [
+    messageId,
+    sessionId,
+    "user",
+    content,
+  ]);
+
+  return messageId;
+}
 
 // Validate a message sent by the user.
 const sendMessageInput = z.object({
@@ -30,8 +52,11 @@ async function getMessages(sessionId: string) {
 }
 
 // Test the sendMessage procedure.
-function sendMessage(sessionId: string, content: string) {
+async function sendMessage(sessionId: string, content: string) {
+  const messageId = await saveUserMessage(sessionId, content);
+
   return {
+    id: messageId,
     sessionId: sessionId,
     content: content,
   };
