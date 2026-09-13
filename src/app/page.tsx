@@ -20,6 +20,12 @@ export default function HomePage() {
   const systemPromptInput = useRef<HTMLTextAreaElement>(null);
   const messageInput = useRef<HTMLInputElement>(null);
 
+  const sendMessageMutation = api.messages.sendMessage.useMutation({
+  onSuccess: async function () {
+    await messages.refetch();
+  },
+  });
+
   function handleCreateSession() {
     createSessionMutation.mutate({
       title: "New chat session.",
@@ -48,10 +54,31 @@ export default function HomePage() {
     });
 }
 
+  function handleSendMessage() {
+    if (!messageInput.current) {
+      return;
+    }
+
+    if (selectedSessionId === "") {
+      return;
+    }
+
+    const content = messageInput.current.value;
+
+    if (content.trim() === "") {
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      sessionId: selectedSessionId,
+      content: content,
+    });
+}
+
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-8 p-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">ChatBot App Isha!!</h1>
+        <h1 className="text-3xl font-bold">ChatBot App Isha!</h1>
         <p className="mt-2 text-neutral-400">
           Minimal starter:Next.js + tRPC + MySQL + OpenAI.
         </p>
@@ -184,23 +211,38 @@ export default function HomePage() {
 
       {/* Message input */}
       {selectedSessionId !== "" && (
-        <div className="mt-auto flex gap-2 pt-6">
-          <input
-            ref={messageInput}
-            type="text"
-            placeholder="Type your message..."
-            className="w-full rounded border border-neutral-700 bg-neutral-950 px-4 py-3 text-white"
-          />
+        <div className="mt-auto pt-6">
+          <div className="flex gap-2">
+            <input
+              ref={messageInput}
+              type="text"
+              placeholder="Type your message..."
+              className="w-full rounded border border-neutral-700 bg-neutral-950 px-4 py-3 text-white"
+            />
 
-          <button
-            type="button"
-            disabled
-            className="rounded bg-neutral-700 px-5 py-3 text-neutral-400"
-          >
-            Send
-          </button>
+            <button
+              type="button"
+              onClick={handleSendMessage}
+              disabled={sendMessageMutation.isPending}
+              className="rounded bg-blue-600 px-5 py-3 text-white"
+            >
+              {sendMessageMutation.isPending ? "Sending..." : "Send"}
+            </button>
+          </div>
+
+          {sendMessageMutation.isSuccess && (
+            <p className="mt-2 text-sm text-green-400">
+              Test received: {sendMessageMutation.data.content}
+            </p>
+          )}
+
+          {sendMessageMutation.isError && (
+            <p className="mt-2 text-sm text-red-400">
+              Error: {sendMessageMutation.error.message}
+            </p>
+          )}
         </div>
-)}
+      )}
 
       </div>
 
