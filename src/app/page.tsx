@@ -19,6 +19,7 @@ export default function HomePage() {
   const updateSystemPromptMutation = api.systemPrompts.update.useMutation();
   const systemPromptInput = useRef<HTMLTextAreaElement>(null);
   const messageInput = useRef<HTMLInputElement>(null);
+  const sendMessageMutation = api.messages.sendMessage.useMutation();
 
   function handleCreateSession() {
     createSessionMutation.mutate({
@@ -44,6 +45,27 @@ export default function HomePage() {
 
     updateSystemPromptMutation.mutate({
       id: systemPrompt.data.id,
+      content: content,
+    });
+}
+
+  function handleSendMessage() {
+    if (!messageInput.current) {
+      return;
+    }
+
+    if (selectedSessionId === "") {
+      return;
+    }
+
+    const content = messageInput.current.value;
+
+    if (content.trim() === "") {
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      sessionId: selectedSessionId,
       content: content,
     });
 }
@@ -184,23 +206,38 @@ export default function HomePage() {
 
       {/* Message input */}
       {selectedSessionId !== "" && (
-        <div className="mt-auto flex gap-2 pt-6">
-          <input
-            ref={messageInput}
-            type="text"
-            placeholder="Type your message..."
-            className="w-full rounded border border-neutral-700 bg-neutral-950 px-4 py-3 text-white"
-          />
+        <div className="mt-auto pt-6">
+          <div className="flex gap-2">
+            <input
+              ref={messageInput}
+              type="text"
+              placeholder="Type your message..."
+              className="w-full rounded border border-neutral-700 bg-neutral-950 px-4 py-3 text-white"
+            />
 
-          <button
-            type="button"
-            disabled
-            className="rounded bg-neutral-700 px-5 py-3 text-neutral-400"
-          >
-            Send
-          </button>
+            <button
+              type="button"
+              onClick={handleSendMessage}
+              disabled={sendMessageMutation.isPending}
+              className="rounded bg-blue-600 px-5 py-3 text-white"
+            >
+              {sendMessageMutation.isPending ? "Sending..." : "Send"}
+            </button>
+          </div>
+
+          {sendMessageMutation.isSuccess && (
+            <p className="mt-2 text-sm text-green-400">
+              Test received: {sendMessageMutation.data.content}
+            </p>
+          )}
+
+          {sendMessageMutation.isError && (
+            <p className="mt-2 text-sm text-red-400">
+              Error: {sendMessageMutation.error.message}
+            </p>
+          )}
         </div>
-)}
+      )}
 
       </div>
 

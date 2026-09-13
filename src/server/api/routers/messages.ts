@@ -8,6 +8,12 @@ const getMessagesInput = z.object({
   sessionId: z.string().uuid(),
 });
 
+// Validate a message sent by the user.
+const sendMessageInput = z.object({
+  sessionId: z.string().uuid(),
+  content: z.string().trim().min(1),
+});
+
 // Get all messages from one session.
 async function getMessages(sessionId: string) {
   const sql = `
@@ -23,6 +29,14 @@ async function getMessages(sessionId: string) {
   return messages;
 }
 
+// Test the sendMessage procedure.
+function sendMessage(sessionId: string, content: string) {
+  return {
+    sessionId: sessionId,
+    content: content,
+  };
+}
+
 // Create router for message-related functions
 export const messagesRouter = createTRPCRouter({
     // get all messages from one session
@@ -30,5 +44,11 @@ export const messagesRouter = createTRPCRouter({
     .input(getMessagesInput)
     .query(function getMessagesRequest({ input }) {
       return getMessages(input.sessionId);
+    }),
+    // Send a message.
+    sendMessage: publicProcedure
+    .input(sendMessageInput)
+    .mutation(function sendMessageRequest({ input }) {
+      return sendMessage(input.sessionId, input.content);
     }),
 });
