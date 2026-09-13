@@ -149,6 +149,11 @@ async function sendMessage(sessionId: string, content: string) {
     answer,
   );
 
+  // Use the first question as the session title.
+if (recentMessages.length === 0) {
+  await updateSessionTitle(sessionId, content);
+}
+
   return {
     id: userMessageId,
     sessionId: sessionId,
@@ -156,6 +161,19 @@ async function sendMessage(sessionId: string, content: string) {
     answerId: assistantMessageId,
     answer: answer,
   };
+}
+
+// Update the title of a session.
+async function updateSessionTitle(sessionId: string, content: string) {
+  const title = content.slice(0, 50);
+
+  const sql = `
+    UPDATE sessions
+    SET title = ?
+    WHERE id = ?
+  `;
+
+  await db.query(sql, [title, sessionId]);
 }
 
 // Create router for message-related functions

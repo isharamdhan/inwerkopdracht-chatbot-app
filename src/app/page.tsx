@@ -2,6 +2,7 @@
 
 import { api } from "~/trpc/react";
 import { useRef, useState, type MouseEvent } from "react";
+import type { KeyboardEvent } from "react";
 
 export default function HomePage() {
   // const health = api.health.ping.useQuery();
@@ -25,6 +26,7 @@ export default function HomePage() {
   const sendMessageMutation = api.messages.sendMessage.useMutation({
     onSuccess: async function () {
       await messages.refetch();
+      await sessions.refetch();
 
       if (messageInput.current) {
         messageInput.current.value = "";
@@ -79,6 +81,13 @@ export default function HomePage() {
       sessionId: selectedSessionId,
       content: content,
     });
+}
+
+function handleMessageKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    handleSendMessage();
+  }
 }
 
   return (
@@ -189,6 +198,7 @@ export default function HomePage() {
               ref={messageInput}
               type="text"
               placeholder="Type your message..."
+              onKeyDown={handleMessageKeyDown}
               className="w-full rounded border border-neutral-700 bg-neutral-950 px-4 py-3 text-white"
             />
 
