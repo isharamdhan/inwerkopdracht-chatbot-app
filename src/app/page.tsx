@@ -7,8 +7,8 @@ export default function HomePage() {
   const health = api.health.ping.useQuery();
   const sessions = api.sessions.list.useQuery();
   const createSessionMutation = api.sessions.create.useMutation({
-    onSuccess: function () {
-    sessions.refetch();
+    onSuccess: async function () {
+    await sessions.refetch();
   },
   });
   const [selectedSessionId, setSelectedSessionId] = useState("");
@@ -180,7 +180,7 @@ export default function HomePage() {
 
         {messages.isError && <p>Error: {messages.error.message}</p>}
 
-        {messages.data && messages.data.length === 0 && (
+        {messages.data?.length === 0 && (
           <p className="text-neutral-400">
             This chat does not have any messages yet.
           </p>
