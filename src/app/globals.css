@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+/* Basic Markdown styling */
+
+.markdown h1 {
+  margin-bottom: 12px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.markdown h2 {
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.markdown p {
+  margin-bottom: 10px;
+}
+
+.markdown ul {
+  padding-left: 24px;
+  list-style-type: disc;
+}
+
+.markdown ol {
+  padding-left: 24px;
+  list-style-type: decimal;
+}
+
+.markdown pre {
+  margin-top: 12px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background-color: #0a0a0a;
+  padding: 12px;
+}
