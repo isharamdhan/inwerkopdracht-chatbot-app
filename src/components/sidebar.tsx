@@ -1,0 +1,96 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { api } from "~/trpc/react";
+
+export function Sidebar() {
+  // Used to navigate to another page.
+  const router = useRouter();
+
+  // Get all saved sessions for the sidebar.
+  const sessions = api.sessions.list.useQuery();
+
+  const createSessionMutation = api.sessions.create.useMutation({
+    onSuccess: async function (newSession) {
+      // Refresh the list and open the new session.
+      await sessions.refetch();
+
+      router.push(`/session/${newSession.id}`);
+    },
+  });
+
+  // Create a session
+  function handleCreateSession() {
+    createSessionMutation.mutate({
+      title: "New chat session.",
+    });
+  }
+
+  return (
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-neutral-800 bg-neutral-900 p-6">
+      <Link
+        href="/"
+        className="mb-8 text-xl font-bold hover:text-blue-400"
+      >
+        ChatBot Isha
+      </Link>
+
+      <nav className="flex min-h-0 flex-1 flex-col gap-4">
+        <button
+          type="button"
+          onClick={handleCreateSession}
+          disabled={createSessionMutation.isPending}
+          className="rounded bg-blue-600 px-4 py-2 text-left text-white"
+        >
+          {createSessionMutation.isPending
+            ? "Creating..."
+            : "+ New session"}
+        </button>
+
+        <Link
+        href="/system-instructions"
+        className="rounded bg-neutral-800 px-4 py-3 hover:bg-neutral-700"
+        >
+        System instructions
+        </Link>
+
+        <div className="flex min-h-0 flex-1 flex-col">
+          <h2 className="mb-3 font-semibold">
+            Sessions
+          </h2>
+
+          {sessions.isLoading && (
+            <p className="text-sm text-neutral-500">
+              Loading sessions...
+            </p>
+          )}
+
+          {sessions.isError && (
+            <p className="text-sm text-red-400">
+              Error: {sessions.error.message}
+            </p>
+          )}
+
+          {sessions.data && (
+            <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+              {/* Create a link for every saved session. */}
+              {sessions.data.map(function (session) {
+                return (
+                  <Link
+                    key={session.id}
+                    href={`/session/${session.id}`}
+                    className="rounded p-3 text-sm hover:bg-neutral-800"
+                  >
+                    {session.title}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </nav>
+    </aside>
+  );
+}
