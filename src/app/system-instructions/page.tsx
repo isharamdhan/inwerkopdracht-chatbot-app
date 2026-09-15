@@ -5,12 +5,17 @@ import { useRef } from "react";
 import { api } from "~/trpc/react";
 
 export default function SystemInstructionsPage() {
+  // Get the current system prompt from the database.
   const systemPrompt = api.systemPrompts.get.useQuery();
+
+  // Used to save changes to the system prompt.
   const updateSystemPromptMutation =
     api.systemPrompts.update.useMutation();
 
+  // Gives access to the text inside the textarea.
   const systemPromptInput = useRef<HTMLTextAreaElement>(null);
 
+  // Save the edited system prompt.
   function handleUpdateSystemPrompt() {
     if (!systemPrompt.data) {
       return;
@@ -35,6 +40,7 @@ export default function SystemInstructionsPage() {
       </h1>
 
       <div className="w-full rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+        {/* Show the loading or error status. */}
         {systemPrompt.isLoading && (
           <p>Loading system prompt...</p>
         )}
@@ -47,6 +53,7 @@ export default function SystemInstructionsPage() {
           <p>No system prompt found.</p>
         )}
 
+        {/* Show the editable system prompt. */}
         {systemPrompt.data && (
           <div>
             <textarea
@@ -67,6 +74,7 @@ export default function SystemInstructionsPage() {
           </div>
         )}
 
+        {/* Show the save status. */}
         {updateSystemPromptMutation.isPending && (
           <p className="mt-3">Updating...</p>
         )}

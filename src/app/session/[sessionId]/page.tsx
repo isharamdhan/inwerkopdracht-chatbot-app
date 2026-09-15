@@ -9,19 +9,24 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export default function SessionPage() {
+  // Get the session ID from the current URL.
   const params = useParams<{ sessionId: string }>();
   const sessionId = params.sessionId;
 
+  // Used to refresh the session title in the sidebar.
   const sessions = api.sessions.list.useQuery();
 
+  // Get all messages from the current session.
   const messages = api.messages.listBySession.useQuery({
     sessionId: sessionId,
   });
 
+  // Gives access to the message input.
   const messageInput = useRef<HTMLInputElement>(null);
 
   const sendMessageMutation = api.messages.sendMessage.useMutation({
     onSuccess: async function () {
+      // Refresh the messages and the session title.
       await messages.refetch();
       await sessions.refetch();
 
@@ -31,6 +36,7 @@ export default function SessionPage() {
     },
   });
 
+  // Send the message entered by the user.
   function handleSendMessage() {
     if (!messageInput.current) {
       return;
@@ -48,6 +54,7 @@ export default function SessionPage() {
     });
   }
 
+  // Send the message when the user presses Enter.
   function handleMessageKeyDown(
     event: KeyboardEvent<HTMLInputElement>,
   ) {
@@ -90,6 +97,7 @@ export default function SessionPage() {
           </p>
         )}
 
+        {/* Show all messages from this session. */}
         {messages.data && (
           <div className="flex flex-col gap-3">
             {messages.data.map(function (message) {
@@ -108,15 +116,16 @@ export default function SessionPage() {
                       : "ChatBot Isha"}
                   </p>
 
+                  {/* Render assistant responses as Markdown. */}
                   {message.role === "assistant" ? (
                     <div className="markdown">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {message.content}
-                        </ReactMarkdown>
+                      </ReactMarkdown>
                     </div>
-                    ) : (
+                  ) : (
                     <p>{message.content}</p>
-                    )}
+                  )}
                 </div>
               );
             })}

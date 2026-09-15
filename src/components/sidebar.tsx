@@ -6,17 +6,22 @@ import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 
 export function Sidebar() {
+  // Used to navigate to another page.
   const router = useRouter();
+
+  // Get all saved sessions for the sidebar.
   const sessions = api.sessions.list.useQuery();
 
   const createSessionMutation = api.sessions.create.useMutation({
     onSuccess: async function (newSession) {
+      // Refresh the list and open the new session.
       await sessions.refetch();
 
       router.push(`/session/${newSession.id}`);
     },
   });
 
+  // Create a session
   function handleCreateSession() {
     createSessionMutation.mutate({
       title: "New chat session.",
@@ -24,12 +29,13 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-neutral-800 bg-neutral-900 p-6">      
-    <Link
-    href="/"
-    className="mb-8 text-xl font-bold hover:text-blue-400">
-    ChatBot Isha
-    </Link>
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-neutral-800 bg-neutral-900 p-6">
+      <Link
+        href="/"
+        className="mb-8 text-xl font-bold hover:text-blue-400"
+      >
+        ChatBot Isha
+      </Link>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-4">
         <button
@@ -69,6 +75,7 @@ export function Sidebar() {
 
           {sessions.data && (
             <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+              {/* Create a link for every saved session. */}
               {sessions.data.map(function (session) {
                 return (
                   <Link
